@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <optional>
 
 template< typename T >
 struct nod;
@@ -11,7 +12,7 @@ struct nod;
 template< typename Symbl, typename Encoding=unsigned char, typename Tally=int >
 class huff_n_write
 {
-using plainbyte = char32_t;
+using plainword_t = Encoding;
 using bitwidth = int;
 
 public :
@@ -20,8 +21,8 @@ public :
    void tally_up( std::basic_istream<C>& scanner );
    void print2strm( const Symbl& letter );
    void flush() { _printer << wordbuf; }
-   void huff_decode( std::basic_istream<plainbyte>& scanner );
-   void huff_spawna_tree( std::basic_istream<plainbyte>& scanner );
+   void huff_decode( std::basic_istream<plainword_t>& scanner );
+   void huff_spawna_tree( std::basic_istream<plainword_t>& scanner );
 private:
    using optio_tuple_t = std::pair< std::optional<Symbl>, Tally>;
 
@@ -29,20 +30,20 @@ private:
    void huffman( std::vector< nod<optio_tuple_t> >& symbls );
    void huff_encode( const nod<optio_tuple_t>&, unsigned int val, int wid );
    void huff_imprint_tree( const nod<optio_tuple_t>& node );
-   void write_n_bits_w_val( bitwidth n, plainbyte val );
-   std::optional<plainbyte> read_n_bits_from( bitwidth n, std::basic_istream<plainbyte>& scanner );
-   void huff_get_tree( std::basic_istream<plainbyte>& scanner, nod<optio_tuple_t>& node, bool root_node_set );
+   void write_n_bits_w_val( bitwidth n, plainword_t val );
+   std::optional<plainword_t> read_n_bits_from( bitwidth n, std::basic_istream<plainword_t>& scanner );
+   void huff_get_tree( std::basic_istream<plainword_t>& scanner, nod<optio_tuple_t>& node, bool root_node_set );
 
    std::basic_ostream<Encoding>&                     _printer;
    std::map<Symbl, Tally>                            _count;
-   std::map<Symbl, std::pair< plainbyte, bitwidth >> _tabl;
+   std::map<Symbl, std::pair< plainword_t, bitwidth >> _tabl;
 
    nod<optio_tuple_t> _treey;
 
    int _word_pos_wt;
    int _word_pos_rd;
-   plainbyte wordbuf;
-   plainbyte wordbuf_in;
+   plainword_t wordbuf;
+   plainword_t wordbuf_in;
 };
 
 #include "huff_n_write.hpp"

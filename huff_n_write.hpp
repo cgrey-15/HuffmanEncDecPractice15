@@ -144,7 +144,7 @@ void huff_n_write<Symbl, Encoding, Tally>::huff_imprint_tree( const nod<optio_tu
    }
 }
 template< typename Symbl, typename Encoding, typename Tally >
-void huff_n_write< Symbl, Encoding, Tally>::huff_spawna_tree( std::basic_istream<plainbyte>& scanner )
+void huff_n_write< Symbl, Encoding, Tally>::huff_spawna_tree( std::basic_istream<plainword_t>& scanner )
 {
    nod<optio_tuple_t> nerd {};
    huff_get_tree( scanner, nerd, true );
@@ -153,15 +153,15 @@ void huff_n_write< Symbl, Encoding, Tally>::huff_spawna_tree( std::basic_istream
 }
 
 template< typename Symbl, typename Encoding, typename Tally >
-void huff_n_write<Symbl, Encoding, Tally>::huff_get_tree( std::basic_istream<plainbyte>& scanner, nod<optio_tuple_t>& node, bool root_node_started )
+void huff_n_write<Symbl, Encoding, Tally>::huff_get_tree( std::basic_istream<plainword_t>& scanner, nod<optio_tuple_t>& node, bool root_node_started )
 {
-   std::optional<plainbyte> bit_val = read_n_bits_from( 1, scanner );
+   std::optional<plainword_t> bit_val = read_n_bits_from( 1, scanner );
    if( !bit_val ) {
       std::cerr << "Bad dra- input...\n";
       return;
    }
    if( *bit_val ) {
-      std::optional<plainbyte> val = read_n_bits_from( EOF_ABLE_ALPH_BITSPAN, scanner );
+      std::optional<plainword_t> val = read_n_bits_from( EOF_ABLE_ALPH_BITSPAN, scanner );
       node.contents.first.emplace(val.value());
       return;
    } else {
@@ -176,11 +176,13 @@ void huff_n_write<Symbl, Encoding, Tally>::huff_get_tree( std::basic_istream<pla
 template< typename Symbl, typename Encoding, typename Tally >
 void huff_n_write<Symbl, Encoding, Tally>::huff_encode( const nod<optio_tuple_t>& nodey, unsigned int val, int wid) {
    if(nodey.contents.first){
+#ifdef __HUFF_DEBUG
       std::wstring output;
       if( wid < 33 )
          output = std::bitset<32>(val).to_string<wchar_t>().substr( 32 - wid );
       else
          output = std::bitset<32>(val).to_string<wchar_t>();
+#endif
 
       //std::wcout << "'"<<*nodey.contents.first << "' has the encoding: " << output;
       //std::wcout << " with bit-width of " << wid << "\n";
@@ -206,7 +208,7 @@ std::string huff_str( unsigned int val, int wid )
 
 
 template< typename Symbl, typename Encoding, typename Tally >
-void huff_n_write<Symbl, Encoding, Tally>::huff_decode( std::basic_istream<plainbyte>& scanner ) {
+void huff_n_write<Symbl, Encoding, Tally>::huff_decode( std::basic_istream<plainword_t>& scanner ) {
    int i;
    int j = 1;
 
@@ -219,7 +221,7 @@ void huff_n_write<Symbl, Encoding, Tally>::huff_decode( std::basic_istream<plain
 #endif
 
 
-   std::optional<plainbyte> result;
+   std::optional<plainword_t> result;
 
 #if 1
    while( result = read_n_bits_from( 1, scanner ) ) {
@@ -283,18 +285,18 @@ void huff_n_write<Symbl, Encoding, Tally>::print2strm( const Symbl& let )
       //   std::cout << "... "<< i;
       return;
    }
-   std::pair <plainbyte, bitwidth> codesymbol = _tabl[let];
+   std::pair <plainword_t, bitwidth> codesymbol = _tabl[let];
    write_n_bits_w_val( codesymbol.second, codesymbol.first );
 
 }
 
 template<typename Symbl, typename Encoding, typename Tally>
-std::optional<char32_t> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( bitwidth n, std::basic_istream<plainbyte>& scanner )
+std::optional<Encoding> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( bitwidth n, std::basic_istream<plainword_t>& scanner )
 {
-   using plainbyte_t = char32_t;
+   using plainword_t = int32_t;
    using bitwidth_t = int;
 
-   plainbyte_t read_val {};
+   plainword_t read_val {};
    bitwidth_t padwidth = WORD_LEN - n;
    bitwidth_t unseenwidth = WORD_LEN - _word_pos_rd;
 
@@ -303,7 +305,7 @@ std::optional<char32_t> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
       bitwidth_t part_val = (wordbuf_in << uncaptured_width) & (ONES_MASK >> padwidth);
       if( !(wordbuf_in = scanner.get()) )
          return std::optional<plainbyte> {};
-      plainbyte_t final_val = part_val | (wordbuf_in >> (WORD_LEN-uncaptured_width));
+      plainword_t final_val = part_val | (wordbuf_in >> (WORD_LEN-uncaptured_width));
       _word_pos_rd = uncaptured_width;
       return std::optional<plainbyte> {final_val};
    } else {
@@ -312,16 +314,16 @@ std::optional<char32_t> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
             return std::optional<plainbyte> {};
       }
       bitwidth_t leftover_width = WORD_LEN-(_word_pos_rd + n);
-      plainbyte_t final_val = (wordbuf_in >> leftover_width) & (ONES_MASK >> padwidth );
+      plainword_t final_val = (wordbuf_in >> leftover_width) & (ONES_MASK >> padwidth );
       _word_pos_rd += n;
       return std::optional<plainbyte> {final_val};
    }
 }
 
 template<typename Symbl, typename Encoding, typename Tally>
-void huff_n_write<Symbl, Encoding, Tally>::write_n_bits_w_val( bitwidth n, plainbyte val )
+void huff_n_write<Symbl, Encoding, Tally>::write_n_bits_w_val( bitwidth n, plainword_t val )
 {
-   using plainbyte_t = char32_t;
+   using plainword_t = int32_t;
    using bitwidth_t = int;
 
    int vacnt_width = WORD_LEN - _word_pos_wt;
@@ -329,14 +331,14 @@ void huff_n_write<Symbl, Encoding, Tally>::write_n_bits_w_val( bitwidth n, plain
 
    if( leftover_width > -1 )
    {
-      plainbyte_t adju_symbol = val << static_cast<unsigned int>(leftover_width); 
+      plainword_t adju_symbol = val << static_cast<unsigned int>(leftover_width); 
       wordbuf |= adju_symbol;
       _word_pos_wt += n;//leftover_width;
    }
    else
    {
       unsigned int oppo_dlt = static_cast<unsigned int>( leftover_width*-1);
-      plainbyte_t adju_symbol = val >> oppo_dlt;
+      plainword_t adju_symbol = val >> oppo_dlt;
       wordbuf |= adju_symbol;
 
       if( _printer.bad() )

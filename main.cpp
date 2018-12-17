@@ -20,7 +20,7 @@ void showme( const std::map<V, K>& els ) {
 int main( int argc, char** argv ) {
 
    using tallies = int;
-   using mysym_t = wchar_t;
+   using mysym_t = int16_t;
 
    if( !(argc > 1) ) {
       std::cout << "dummy_prog: please provide a filename as argument\n";
@@ -37,10 +37,10 @@ int main( int argc, char** argv ) {
 
    //char n;
 
-   std::basic_ostringstream<char32_t> sstream_kun{std::ios::binary};
-   std::basic_ofstream<char32_t> fstream_kun{"test_comp_file.sp", std::ofstream::binary };
+   //`std::basic_ostringstream<int32_t> sstream_kun{std::ios::binary};
+   std::basic_ofstream<int32_t> fstream_kun{"test_comp_file.sp", std::ofstream::binary };
 
-   huff_n_write<mysym_t, char32_t> myhuffler { /*s*/fstream_kun };
+   huff_n_write<mysym_t, int32_t> myhuffler { /*s*/fstream_kun };
 
    myhuffler.tally_up( instream_kun );
 
