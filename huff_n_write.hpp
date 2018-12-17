@@ -304,19 +304,19 @@ std::optional<Encoding> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
       bitwidth_t uncaptured_width = n - unseenwidth;
       bitwidth_t part_val = (wordbuf_in << uncaptured_width) & (ONES_MASK >> padwidth);
       if( !(wordbuf_in = scanner.get()) )
-         return std::optional<plainbyte> {};
+         return std::optional<plainword_t> {};
       plainword_t final_val = part_val | (wordbuf_in >> (WORD_LEN-uncaptured_width));
       _word_pos_rd = uncaptured_width;
-      return std::optional<plainbyte> {final_val};
+      return std::optional<plainword_t> {final_val};
    } else {
       if( _word_pos_rd == 0 ) {
          if( !(wordbuf_in = scanner.get()) )
-            return std::optional<plainbyte> {};
+            return std::optional<plainword_t> {};
       }
       bitwidth_t leftover_width = WORD_LEN-(_word_pos_rd + n);
       plainword_t final_val = (wordbuf_in >> leftover_width) & (ONES_MASK >> padwidth );
       _word_pos_rd += n;
-      return std::optional<plainbyte> {final_val};
+      return std::optional<plainword_t> {final_val};
    }
 }
 
