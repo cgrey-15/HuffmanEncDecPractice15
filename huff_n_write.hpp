@@ -1,7 +1,9 @@
 #include<algorithm>
 #include<memory>
 #include<utility>
+#include<limits>
 #include "huff_def.h"
+#include "huff_n_write.h"
 
 #ifdef __HUFF_DEBUG
 enum class DirChild { left, right, root };
@@ -81,7 +83,9 @@ void huff_n_write<Symbl, Encoding, Tally>::huffman( std::vector<nod<optio_tuple_
       return val > curr.contents.second;
    };
 
-   syms.emplace_back( optio_tuple_t{256, 1} );
+   int max_val = std::numeric_limits<plainword_t>::max();
+   std::cout << "Size given is: " << max_val << '\n';
+   syms.emplace_back( optio_tuple_t{max_val+1, 1} );
 
    std::sort( syms.begin(), syms.end(), gt_lamb );
 
@@ -285,15 +289,16 @@ void huff_n_write<Symbl, Encoding, Tally>::print2strm( const Symbl& let )
       //   std::cout << "... "<< i;
       return;
    }
-   std::pair <plainword_t, bitwidth> codesymbol = _tabl[let];
-   write_n_bits_w_val( codesymbol.second, codesymbol.first );
+   std::pair <char16_t, bitwidth_t> codesymbol = _tabl[let];
+   //write_n_bits_w_val( codesymbol.second, codesymbol.first );
+   write_oversized(codesymbol.second, codesymbol.first);
 
 }
 
 template<typename Symbl, typename Encoding, typename Tally>
-std::optional<Encoding> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( bitwidth n, std::basic_istream<plainword_t>& scanner )
+std::optional<Encoding> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( bitwidth_t n, std::basic_istream<plainword_t>& scanner )
 {
-   using plainword_t = int32_t;
+   //using plainword_t = wchar_t;
    using bitwidth_t = int;
 
    plainword_t read_val {};
@@ -302,7 +307,7 @@ std::optional<Encoding> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
 
    if( n > unseenwidth ) {
       bitwidth_t uncaptured_width = n - unseenwidth;
-      bitwidth_t part_val = (wordbuf_in << uncaptured_width) & (ONES_MASK >> padwidth);
+      plainword_t part_val = (wordbuf_in << uncaptured_width) & (ONES_MASK >> padwidth);
       if( !(wordbuf_in = scanner.get()) )
          return std::optional<plainword_t> {};
       plainword_t final_val = part_val | (wordbuf_in >> (WORD_LEN-uncaptured_width));
@@ -321,9 +326,9 @@ std::optional<Encoding> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
 }
 
 template<typename Symbl, typename Encoding, typename Tally>
-void huff_n_write<Symbl, Encoding, Tally>::write_n_bits_w_val( bitwidth n, plainword_t val )
+void huff_n_write<Symbl, Encoding, Tally>::write_n_bits_w_val( bitwidth_t n, plainword_t val )
 {
-   using plainword_t = int32_t;
+   //using plainword_t = wchar_t;
    using bitwidth_t = int;
 
    int vacnt_width = WORD_LEN - _word_pos_wt;
@@ -341,14 +346,27 @@ void huff_n_write<Symbl, Encoding, Tally>::write_n_bits_w_val( bitwidth n, plain
       plainword_t adju_symbol = val >> oppo_dlt;
       wordbuf |= adju_symbol;
 
-      if( _printer.bad() )
-         std::cout << "oh no!\n";
-      _printer << wordbuf;
+      //if( _printer.bad() )
+      //   std::cout << "oh no!\n";
+      //_printer << wordbuf;
+	  _printer.put(wordbuf);
 
       unsigned int overflow_dlt = static_cast<unsigned int>( WORD_LEN + leftover_width );
 
       wordbuf = val << overflow_dlt;
       _word_pos_wt = oppo_dlt;
+   }
+}
+template<typename Symbl, typename Encoding, typename Tally>
+void huff_n_write<Symbl, Encoding, Tally>::write_oversized(bitwidth_t n, unsigned short val)
+{
+   char* ptr = reinterpret_cast<char*>(&val);
+
+   if (n < WORD_LEN + 1)
+      write_n_bits_w_val(n, ptr[1]);
+   else {
+      write_n_bits_w_val(n - WORD_LEN, ptr[0]);
+      write_n_bits_w_val(WORD_LEN, ptr[1]);
    }
 }
 
