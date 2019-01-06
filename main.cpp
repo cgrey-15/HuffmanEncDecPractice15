@@ -38,12 +38,16 @@ int main( int argc, char** argv ) {
    //char n;
 
    //`std::basic_ostringstream<int32_t> sstream_kun{std::ios::binary};
-   std::basic_ofstream<unsigned char> fstream_kun{"test_comp_file.sp", std::ofstream::binary };
+#ifdef __HUFF_DEBUG
+   std::basic_ostringstream<char> fstream_kun{std::ostringstream::binary};
+#else
+   std::basic_ofstream<char> fstream_kun{"test_comp_file.sp", std::ofstream::binary };
+#endif
 
    if (fstream_kun.bad())
       std::cout << "What happened??\n";
 
-   huff_n_write<mysym_t, unsigned char> myhuffler { /*s*/fstream_kun };
+   huff_n_write<mysym_t, char> myhuffler { /*s*/fstream_kun };
 
    myhuffler.tally_up( instream_kun );
 
@@ -75,7 +79,6 @@ int main( int argc, char** argv ) {
    myhuffler.flush();
 
 #if 0
-   std::basic_string<char32_t> result = sstream_kun.str();
    std::basic_ofstream<char32_t> fileoutput {"fudrukkers.sp", std::ofstream::binary | std::ofstream::out};
    if( !fileoutput.is_open() )
       std::cout << "Not open!\n";
@@ -97,11 +100,13 @@ int main( int argc, char** argv ) {
    //std::basic_istringstream<char32_t> isstream_kun{result, std::ios::binary};
 
    
-#if 0
+#ifdef __HUFF_DEBUG
+   std::basic_string<char> result = fstream_kun.str();
+
    std::cout << "CONTENTS" << result.size() << "\n";
    int i = 0;
    for( auto sym_it = result.begin(); sym_it != result.end(); sym_it++ )
-      std::cout << "sstream_kun[" << i++ << "] has value '" << std::bitset<32>(*sym_it) <<"'\n";
+      std::cout << "sstream_kun[" << i++ << "] has value '" << std::bitset<8>(*sym_it) <<"'\n";
 #endif
    //std::cout << sstream_kun.str() << "\n";
    //myhuffler.huff_spawna_tree( isstream_kun );
@@ -111,6 +116,8 @@ int main( int argc, char** argv ) {
    std::cout << "Terminate in peace!\n";
 
    instream_kun.close();
+#ifndef __HUFF_DEBUG
    fstream_kun.close();
+#endif
 
 }

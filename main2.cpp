@@ -18,7 +18,7 @@ int main( int argc, char** argv )
    
    std::ofstream output_file {"arrrrrrrgh.txt"};
 
-   std::basic_ifstream<char32_t> inhuff_kun {argv[1], std::ifstream::binary};
+   std::basic_ifstream<char> inhuff_kun {argv[1], std::ifstream::binary};
 
    if( !inhuff_kun.is_open() ) {
       std::cout << "dummy_dec: given file doesn't exist\n";
