@@ -20,7 +20,7 @@ using _charx_t = unsigned int32_t;
 using _char2x_t = unsigned long long int;
 
 public :
-   huff_n_write( std::basic_ostream<Encoding>& printer ) : _printer{printer}, _tabl{ /*practice_table*/ }, _treey{}, _word_pos_wt{}, _word_pos_rd{}, wordbuf{}, wordbuf_in{} {}
+   huff_n_write( std::basic_ostream<Encoding>& printer ) : _printer{printer}, _tabl{ /*practice_table*/ }, _treey{}, _word_pos_wt{}, _word_pos_rd{}, wordbuf{}, wordbuf_in{}, mutated{} {}
    template<typename C>
    void tally_up( std::basic_istream<C>& scanner );
    void print2strm( const wchar_t& letter );
@@ -48,6 +48,7 @@ private:
 
    std::unique_ptr< nod<optio_tuple_t> > _treey;
 
+   bool mutated;
    int _word_pos_wt;
    int _word_pos_rd;
    plainword_t wordbuf;

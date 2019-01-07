@@ -166,7 +166,7 @@ void huff_n_write< Symbl, Encoding, Tally>::huff_spawna_tree( std::basic_istream
    huff_get_tree( scanner, nerd, true );
    _treey = std::make_unique<nod<optio_tuple_t>>( std::move( nerd ) );
 #ifdef __HUFF_DEBUG
-   repair_root();
+   //repair_root();
 #endif
    return;
 }
@@ -271,13 +271,13 @@ void huff_n_write<Symbl, Encoding, Tally>::huff_decode( std::basic_istream<plain
          hook = hook->r_lnk.get();
       
       if( hook->contents.first ) {
-         if( *hook->contents.first == plainword_max+1 )
+         if( *hook->contents.first == static_cast<unsigned char>(plainword_max)+1 )
             break;
-	 std::cout << static_cast<char>(*hook->contents.first) << '[' << *hook->contents.first << ']';
+	 //std::cout << static_cast<char>(*hook->contents.first) << '[' << *hook->contents.first << ']';
 	 _printer << static_cast<char>(*hook->contents.first);
 	 hook = _treey.get();
-	 if( !(j++%72) )
-            std::wcout << '\n';
+	 //if( !(j++%72) )
+         //   std::wcout << '\n';
       }
    }
 #else
@@ -337,6 +337,10 @@ void huff_n_write<Symbl, Encoding, Tally>::print2strm( const wchar_t& let )
 template<typename Symbl, typename Encoding, typename Tally>
 std::optional<char32_t> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( bitwidth_t n, std::basic_istream<plainword_t>& scanner )
 {
+   if( !mutated ) {
+      mutated = true;
+      wordbuf_in = scanner.get();
+   }
    using plainword_t = wchar_t;
    using bitwidth_t = int;
 
@@ -355,10 +359,10 @@ std::optional<char32_t> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
 
    if( end < (sizeof(char)*8) ) {
 
-      if( _word_pos_rd == 0 ) {
-         wordbuf_in = scanner.get();
-         std::cout << "[NEW] [" << huff_str(wordbuf_in, 8) << "] ";
-      }
+      //if( /*_word_pos_rd == 0*/ ) {
+      //   wordbuf_in = scanner.get();
+      //   std::cout << "[NEW] [" << huff_str(wordbuf_in, 8) << "] ";
+      //}
       int right_dlt = prepped - n;
       uint32_t output = ((_char_mask >> _word_pos_rd) & wordbuf_in) >> right_dlt;
 
@@ -382,13 +386,18 @@ std::optional<char32_t> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
 //      std::cout << '[' << huff_str(wordbuf_in, _char_bitlen) << "] ";
 
       while( (wordbuf_in = scanner.get()) && empty_tray > _char_bitlen ) {
+#ifdef __HUFF_DEBUG
          std::cout << "[NEW] [" << huff_str(wordbuf_in, 8) << "] ";
+#endif
 //         std::cout << '[' << huff_str(wordbuf_in, _char_bitlen) << "] ";
          output |= (static_cast<uint32_t>(wordbuf_in) << empty_tray);
 	 empty_tray -= _char_bitlen;
       }
+#ifdef __HUFF_DEBUG
+
       std::cout << "[NEW] [" << huff_str(wordbuf_in, 8) << "] ";
 //    std::cout << '[' << huff_str(wordbuf_in, _char_bitlen) << "]\n";
+#endif
 
       if( empty_tray < 0 )
          std::cerr << "Negative left-shift operand detected. Incorrect procedure.\n";
@@ -396,11 +405,13 @@ std::optional<char32_t> huff_n_write<Symbl, Encoding, Tally>::read_n_bits_from( 
       unsigned char uwordbuf_in = wordbuf_in;
       output |= static_cast<uint32_t>(uwordbuf_in) >> (_char_bitlen - empty_tray);
       _word_pos_rd = empty_tray;
+#ifdef __HUFF_DEBUG
 
       if( n == 9 )
          std::cout << "ret=" << output << "[symbol='" << static_cast<char>(output) << "'," << huff_strLL(output, 16) << "]  ";
       else
          std::cout << "ret=" << output << "  ";
+#endif
 
 
 #ifdef __HUFF_DEBUG
@@ -434,7 +445,7 @@ void huff_n_write<Symbl, Encoding, Tally>::write_n_bits_w_val( bitwidth_t n, cha
    int padwidth = _char2x_t_bitlen - n;
 
    unsigned char uwordbuf = wordbuf;
-   unsigned char32_t uval = val;
+   uint32_t uval = val;
 
    _char2x_t buf_contents = static_cast<_char2x_t>(uwordbuf) << (_char2x_t_bitlen - _char_bitlen);
 #if 0
