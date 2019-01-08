@@ -7,6 +7,7 @@
 #include <optional>
 #include <limits>
 #include <memory>
+#include <cstdint>
 
 template< typename T >
 struct nod;
@@ -16,7 +17,7 @@ class huff_n_write
 {
 using plainword_t = Encoding;
 using bitwidth_t = int;
-using _charx_t = unsigned int32_t;
+using _charx_t = uint32_t;
 using _char2x_t = unsigned long long int;
 
 public :
@@ -44,7 +45,7 @@ private:
 
    std::basic_ostream<Encoding>&                     _printer;
    std::map<Symbl, Tally>                            _count;
-   std::map<Symbl, std::pair< /*plainword_t*/char16_t, bitwidth_t >> _tabl;
+   std::map<char16_t, std::pair< /*plainword_t*/char16_t, bitwidth_t >> _tabl;
 
    std::unique_ptr< nod<optio_tuple_t> > _treey;
 
