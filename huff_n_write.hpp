@@ -63,7 +63,9 @@ void huff_n_write<Symbl, Encoding, Tally>::tally_up( std::basic_istream<C>& scan
 
    std::vector< nod<optio_tuple_t> > nods {};
    for (auto x = _count.begin(); x != _count.end(); ++x) {
+#ifdef __HUFF_DEBUG
       std::cout << x->first << '(' << static_cast<int>(x->first) << ")\n";
+#endif
       nods.emplace_back(std::move(*x));
    }
 
