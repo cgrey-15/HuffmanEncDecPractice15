@@ -72,3 +72,4 @@
 /ProgSol/.vs/ProgSol/v15/ipch/AutoPCH/e4591d5e83a057bf/MAIN.ipch
 /ProgSol/Release/ProgSol.tlog
 /ProgSol/Release
+*.ipch
